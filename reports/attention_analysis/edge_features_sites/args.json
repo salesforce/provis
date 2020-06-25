@@ -1,0 +1,1 @@
+{"exp_name": "edge_features_sites", "features": ["binding_sites"], "dataset": "binding_sites", "num_sequences": 5000, "model": "bert", "model_dir": null, "shuffle": true, "max_seq_len": 512, "start_index": 0, "seed": 123, "min_attn": 0.1, "no_cuda": false}

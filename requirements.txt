@@ -1,0 +1,8 @@
+tape-proteins==0.4
+torch==1.4.0
+biopython==1.77
+scikit-learn==0.23.1
+seaborn==0.10.1
+matplotlib==3.2.1
+notebook==6.0.3
+nglview==2.7.5
