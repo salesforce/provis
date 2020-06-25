@@ -1,4 +1,4 @@
-"""Train and evaluate probing classifiers. Based on training.py from TAPE"""
+"""Train and evaluate probing classifiers. Based on training.py from TAPE, modified to perform probing specifically."""
 
 import inspect
 import json

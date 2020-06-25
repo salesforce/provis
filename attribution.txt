@@ -1,4 +1,4 @@
-For portions of source code based on TAPE:
+For portions of source code based on TAPE (protein_attention/datasets.py, protein_attention/probing/probe.py) :
 
 BSD 3-Clause License
 
