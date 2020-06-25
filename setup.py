@@ -6,7 +6,7 @@ with open('requirements.txt', 'r') as reqs:
     requirements = reqs.read().split()
 
 setup(
-    name='protein-attention',
+    name='provis',
     packages=["protein_attention"],
     version='0.0.1',
     install_requires=requirements,
