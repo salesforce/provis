@@ -2,23 +2,55 @@
 
 This repository is the official implementation of "BERTology Meets Biology: Interpreting Attention in Protein Language Models". 
 
-## Installation
-
-```setup
-cd <project_root>
-python setup.py develop
-```
 
 If you wish to use the interactive visualization, you must also run the following:
 ```
 jupyter-nbextension enable nglview --py --sys-prefix
 ```
 
-## Attention Visualizer
+## ProVis Attention Visualizer
 
 ![Image](images/vis3d_binding_sites.png?raw=true)  ![Image](images/vis3d_contact_map.png?raw=true)
 
-To run ProVis:
+### Installation
+**General requirements**:
+* Python >= 3.6
+* PyTorch (See installation instructions [here](https://pytorch.org/).)
+
+**Specific libraries:**
+```
+pip install biopython==1.77
+pip install tape-proteins==0.4
+```
+
+**NGLViewer** (based on instructions found [here](https://github.com/arose/nglview#released-version])):
+
+- Available on `conda-forge` channel
+
+    ```bash
+    conda install nglview -c conda-forge
+    jupyter-nbextension enable nglview --py --sys-prefix
+    
+  # if you already installed nglview, you can `upgrade`
+    conda upgrade nglview --force
+    # might need: jupyter-nbextension enable nglview --py --sys-prefix
+    ```
+
+- Available on [PyPI](https://pypi.python.org/pypi/nglview/)
+
+```bash
+   pip install nglview
+   jupyter-nbextension enable nglview --py --sys-prefix
+```
+
+To use in Jupyter Lab you need to install appropriate extension:
+
+```bash
+jupyter labextension install  nglview-js-widgets
+```
+
+### Execution
+
 ```
 cd <project_root>/notebooks
 jupyter notebook provis.ipynb
@@ -28,6 +60,14 @@ You may edit the notebook to choose other proteins, attention heads, etc. The vi
 excellent [nglview](https://github.com/arose/nglview) library.
 
 ## Experiments
+
+### Installation
+
+```setup
+cd <project_root>
+python setup.py develop
+```
+
 
 ### Datasets
 
