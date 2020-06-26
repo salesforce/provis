@@ -8,7 +8,7 @@ If you wish to use the interactive visualization, you must also run the followin
 jupyter-nbextension enable nglview --py --sys-prefix
 ```
 
-## ProVis Attention Visualizer
+# ProVis Attention Visualizer
 
 ![Image](images/vis3d_binding_sites.png?raw=true)  ![Image](images/vis3d_contact_map.png?raw=true)
 
@@ -59,7 +59,7 @@ jupyter notebook provis.ipynb
 You may edit the notebook to choose other proteins, attention heads, etc. The visualization tool is based on the
 excellent [nglview](https://github.com/arose/nglview) library.
 
-## Experiments
+# Experiments
 
 ### Installation
 
