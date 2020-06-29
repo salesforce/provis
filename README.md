@@ -1,6 +1,6 @@
 # BERTology Meets Biology: Interpreting Attention in Protein Language Models
 
-This repository is the official implementation of "BERTology Meets Biology: Interpreting Attention in Protein Language Models". 
+This repository is the official implementation of [BERTology Meets Biology: Interpreting Attention in Protein Language Models](https://www.biorxiv.org/content/10.1101/2020.06.26.174417v1). 
 
 ## ProVis Attention Visualizer
 
