@@ -58,11 +58,13 @@ def create_figure(feature_name, weighted_sum, weight_total, report_dir, min_tota
     ax2 = plt.subplot2grid((100, 85), (12, 70), colspan=15, rowspan=75)
     heatmap = sns.heatmap((mean_by_head * 100).tolist(), center=0.0, ax=ax1,
                           square=True, cbar=False, linewidth=0.1, linecolor='#D0D0D0',
-                          cmap=LinearSegmentedColormap.from_list('rg', ["#F14100", "white", "#3D4FC4"], N=256),
+                          cmap=LinearSegmentedColormap.from_list('rg', ["#F14100", "white", "#3ED134"], N=256),
                           mask=exclude_mask,
                           xticklabels=['', '2', '', '4', '', '6', '', '8', '', '10', '', '12'],
                           yticklabels=['', '2', '', '4', '', '6', '', '8', '', '10', '', '12'])
 
+    for _, spine in heatmap.spines.items():
+        spine.set_visible(True)
     plt.setp(heatmap.get_yticklabels(), fontsize=7)
     plt.setp(heatmap.get_xticklabels(), fontsize=7)
     heatmap.tick_params(axis='x', pad=1, length=2)
@@ -85,7 +87,8 @@ def create_figure(feature_name, weighted_sum, weight_total, report_dir, min_tota
     for _, spine in ax1.spines.items():
         spine.set_visible(True)
     ax2.set_title('      Layer Avg.', size=9)
-    bp = sns.barplot(x=layer_macro * 100, ax=ax2, y=list(range(layer_macro.shape[0])), color="#3D4FC4", orient="h")
+    # bp = sns.barplot(x=layer_macro * 100, ax=ax2, y=list(range(layer_macro.shape[0])), color="#3D4FC4", orient="h")
+    bp = sns.barplot(x=layer_macro * 100, ax=ax2, y=list(range(layer_macro.shape[0])), color="#556FAB", orient="h")
     formatter = FuncFormatter(lambda y, pos: '0' if (y == 0) else "%d%%" % (y))
     ax2.xaxis.set_major_formatter(formatter)
     plt.setp(bp.get_xticklabels(), fontsize=7)

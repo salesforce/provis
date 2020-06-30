@@ -172,3 +172,18 @@ This project is licensed under BSD3 License - see the [LICENSE](LICENSE) file fo
 This project incorporates code from the following repo:
 * https://github.com/songlab-cal/tape
 
+## Citation
+
+When referencing this repository, please cite [this paper](https://arxiv.org/abs/2006.15222).
+
+```
+@article{vig2020bertology,
+    title={BERTology Meets Biology: Interpreting Attention in Protein Language Models},
+    author={Jesse Vig and Ali Madani and Lav R. Varshney and Caiming Xiong and Richard Socher and Nazneen Fatema Rajani},
+    year={2020},
+    eprint={2006.15222},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+```
+
