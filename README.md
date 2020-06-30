@@ -183,7 +183,8 @@ When referencing this repository, please cite [this paper](https://arxiv.org/abs
     year={2020},
     eprint={2006.15222},
     archivePrefix={arXiv},
-    primaryClass={cs.CL}
+    primaryClass={cs.CL},
+    url={https://arxiv.org/abs/2006.15222}
 }
 ```
 
