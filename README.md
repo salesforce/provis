@@ -1,6 +1,6 @@
 # BERTology Meets Biology: Interpreting Attention in Protein Language Models
 
-This repository is the official implementation of [BERTology Meets Biology: Interpreting Attention in Protein Language Models](https://www.biorxiv.org/content/10.1101/2020.06.26.174417v1). 
+This repository is the official implementation of [BERTology Meets Biology: Interpreting Attention in Protein Language Models](https://arxiv.org/abs/2006.15222). 
 
 ## ProVis Attention Visualizer
 
@@ -177,7 +177,7 @@ This project incorporates code from the following repo:
 When referencing this repository, please cite [this paper](https://arxiv.org/abs/2006.15222).
 
 ```
-@article{vig2020bertology,
+@misc{vig2020bertology,
     title={BERTology Meets Biology: Interpreting Attention in Protein Language Models},
     author={Jesse Vig and Ali Madani and Lav R. Varshney and Caiming Xiong and Richard Socher and Nazneen Fatema Rajani},
     year={2020},
