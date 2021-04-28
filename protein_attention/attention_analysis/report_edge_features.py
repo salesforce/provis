@@ -25,7 +25,6 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from mpl_toolkits.axes_grid1.colorbar import colorbar
-import re
 
 secondary_names = {
     '0': 'Helix',
@@ -33,11 +32,6 @@ secondary_names = {
     '2': 'Turn/Bend',
     '3': 'Blank'
 }
-
-aa_to_pattern = re.compile(r'res_to_([A-Z])$')
-secondary_to_pattern = re.compile(r'sec_struct_to_([A-Z0-3\s])$')
-contact_map_pattern = re.compile(r'contact_map')
-binding_site_pattern = re.compile(r'binding_site_to')
 
 
 def to_filename(s, extension):
@@ -51,30 +45,54 @@ def create_figure(feature_name, weighted_sum, weight_total, report_dir, min_tota
     exclude_mask = np.array(weight_total) < min_total
 
     masked_mean_by_head = np.ma.masked_array(mean_by_head, mask=exclude_mask)
-    layer_macro = masked_mean_by_head.mean(-1)
+    layer_max = masked_mean_by_head.max(-1)
 
-    plt.figure(figsize=(3, 2.2))
-    ax1 = plt.subplot2grid((100, 85), (0, 0), colspan=65, rowspan=99)
-    ax2 = plt.subplot2grid((100, 85), (12, 70), colspan=15, rowspan=75)
+    n_layers, n_heads = mean_by_head.shape
+    if n_layers == 12 and n_heads == 12:
+        plt.figure(figsize=(3, 2.2))
+        ax1 = plt.subplot2grid((100, 85), (0, 0), colspan=65, rowspan=99)  # Heatmap
+        ax2 = plt.subplot2grid((100, 85), (12, 70), colspan=15, rowspan=75)  # Barchart
+    elif n_layers == 30 and n_heads == 16:
+        plt.figure(figsize=(3, 2.2))
+        ax1 = plt.subplot2grid((100, 85), (0, 5), colspan=55, rowspan=96)
+        ax2 = plt.subplot2grid((100, 85), (0, 62), colspan=17, rowspan=97)
+    elif n_layers == 12 and n_heads == 64:
+        plt.figure(figsize=(8.5, 2.2))
+        ax1 = plt.subplot2grid((100, 160), (0, 5), colspan=135, rowspan=96)
+        ax2 = plt.subplot2grid((100, 160), (22, 144), colspan=10, rowspan=53)
+        plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.01, hspace=0.01)
+    else:
+        raise NotImplementedError
+
+    xtick_labels = [str(i) if i % 2 == 0 else '' for i in range(1, n_heads + 1)]
+    ytick_labels = [str(i) if i % 2 == 0 else '' for i in range(1, n_layers + 1)]
     heatmap = sns.heatmap((mean_by_head * 100).tolist(), center=0.0, ax=ax1,
                           square=True, cbar=False, linewidth=0.1, linecolor='#D0D0D0',
-                          cmap=LinearSegmentedColormap.from_list('rg', ["#F14100", "white", "#3ED134"], N=256),
+                          cmap=LinearSegmentedColormap.from_list('rg', ["#F14100", "white", "#3D4FC4"], N=256),
                           mask=exclude_mask,
-                          xticklabels=['', '2', '', '4', '', '6', '', '8', '', '10', '', '12'],
-                          yticklabels=['', '2', '', '4', '', '6', '', '8', '', '10', '', '12'])
-
+                          xticklabels=xtick_labels,
+                          yticklabels=ytick_labels)
     for _, spine in heatmap.spines.items():
         spine.set_visible(True)
+        spine.set_edgecolor('#D0D0D0')
+        spine.set_linewidth(0.1)
     plt.setp(heatmap.get_yticklabels(), fontsize=7)
     plt.setp(heatmap.get_xticklabels(), fontsize=7)
     heatmap.tick_params(axis='x', pad=1, length=2)
-    heatmap.tick_params(axis='y', pad=1, length=2)
-    heatmap.yaxis.labelpad = 2
+    heatmap.tick_params(axis='y', pad=.5, length=2)
+    heatmap.yaxis.labelpad = 3
     heatmap.invert_yaxis()
     heatmap.set_facecolor('#E7E6E6')
     # split axes of heatmap to put colorbar
     ax_divider = make_axes_locatable(ax1)
-    cax = ax_divider.append_axes('left', size='7%', pad='33%')
+    if n_layers == 12 and n_heads == 12:
+        cax = ax_divider.append_axes('left', size='7%', pad='33%')
+    elif n_layers == 30 and n_heads == 16:
+        cax = ax_divider.append_axes('left', size='7%', pad='45%')
+    elif n_layers == 12 and n_heads == 64:
+        cax = ax_divider.append_axes('left', size='1.5%', pad='7%')
+    else:
+        raise NotImplementedError
     # # make colorbar for heatmap.
     # # Heatmap returns an axes obj but you need to get a mappable obj (get_children)
     cbar = colorbar(ax1.get_children()[0], cax=cax, orientation='vertical', format='%.0f%%')
@@ -86,9 +104,9 @@ def create_figure(feature_name, weighted_sum, weight_total, report_dir, min_tota
     ax1.set_ylabel('Layer', size=8)
     for _, spine in ax1.spines.items():
         spine.set_visible(True)
-    ax2.set_title('      Layer Avg.', size=9)
-    # bp = sns.barplot(x=layer_macro * 100, ax=ax2, y=list(range(layer_macro.shape[0])), color="#3D4FC4", orient="h")
-    bp = sns.barplot(x=layer_macro * 100, ax=ax2, y=list(range(layer_macro.shape[0])), color="#556FAB", orient="h")
+    ax2.set_title('Max', size=9)
+    bp = sns.barplot(x=layer_max * 100, ax=ax2, y=list(range(layer_max.shape[0])), color="#3D4FC4", orient="h",
+                     edgecolor="none")
     formatter = FuncFormatter(lambda y, pos: '0' if (y == 0) else "%d%%" % (y))
     ax2.xaxis.set_major_formatter(formatter)
     plt.setp(bp.get_xticklabels(), fontsize=7)

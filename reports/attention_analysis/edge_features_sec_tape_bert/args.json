@@ -1,0 +1,1 @@
+{"exp_name": "edge_features_sec_tape_bert", "features": ["ss4"], "dataset": "secondary", "num_sequences": 5000, "model": "bert", "model_version": null, "model_dir": null, "shuffle": true, "max_seq_len": 512, "seed": 123, "min_attn": 0.3, "no_cuda": false}

@@ -56,17 +56,30 @@ class AminoAcidFeature(EdgeFeature):
 
 class BindingSiteFeature(EdgeFeature):
 
-    def get_values(self, item, from_index, to_index):
-        feature_values = {}
+    def get_values(self, item, from_index, to_index, dense=False):
         if item['site_indic'][to_index] == 1:
-            feature_values = {
-                'binding_site_to': 1
-            }
-        return feature_values
+            return {'binding_site_to': 1}
+        else:
+            if dense:
+                return {'binding_site_to': 0}
+            else:
+                return {}
+
+
+class ProteinModificationFeature(EdgeFeature):
+
+    def get_values(self, item, from_index, to_index, dense=False):
+        if item['modification_indic'][to_index] == 1:
+            return {'protein_modification_to': 1}
+        else:
+            if dense:
+                return {'protein_modification_to': 0}
+            else:
+                return {}
 
 
 class ContactMapFeature(EdgeFeature):
-    def get_values(self, item, from_index, to_index):
+    def get_values(self, item, from_index, to_index, dense=False):
         contact_map = item['contact_map']
         contact1 = contact_map[from_index, to_index]
         contact2 = contact_map[to_index, from_index]
@@ -74,36 +87,7 @@ class ContactMapFeature(EdgeFeature):
         if contact1 == 1:
             return {'contact_map': 1}
         else:
-            return {}
-#
-#
-# if __name__ == "__main__":
-#     from protein_interpret.datasets import BindingSiteDataset
-#     from protein_interpret.utils import get_data_path
-#     from protein_interpret.attention_analysis.compute_edge_features import convert_item
-#
-#     model_name = 'bert'
-#     d = BindingSiteDataset(get_data_path(), 'train')
-#     ds_name = 'binding_sites'
-#     idx = 0
-#     data = d.data[idx]
-#     x = d[idx]
-#     item = convert_item(ds_name, x, data, model_name)
-#     print(data['id'])
-#
-#     print(list(zip(range(0, len(item['primary'])), item['primary'], item['site_indic'])))
-#     feature = BindingSiteFeature()
-#
-#     assert feature.get_values(item, 23, 88)['binding_site_to'] == 1
-#     assert feature.get_values(item, 22, 88)['binding_site_to'] == 1
-#     assert 'binding_site_to' not in feature.get_values(item, 23, 90)
-#
-
-
-
-
-
-
-
-
-
+            if dense:
+                return {'contact_map': 0}
+            else:
+                return {}

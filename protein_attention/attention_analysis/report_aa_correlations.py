@@ -1,10 +1,4 @@
-"""Report pairwise correlations of attention to specific amino acids, and compare to blosum
-
-Copyright (c) 2020, salesforce.com, inc.
-All rights reserved.
-SPDX-License-Identifier: BSD-3-Clause
-For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
+"""Report pairwise correlations of attention to specific amino acids, and compare to blosum"""
 
 import json
 import pickle

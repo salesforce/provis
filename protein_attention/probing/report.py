@@ -1,10 +1,4 @@
-"""Report on diagnostic classifiers for probing analysis
-
-Copyright (c) 2020, salesforce.com, inc.
-All rights reserved.
-SPDX-License-Identifier: BSD-3-Clause
-For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
+"""Report on diagnostic classifiers for probing analysis"""
 
 import json
 import pathlib
@@ -17,6 +11,7 @@ from protein_attention.utils import get_data_path
 from protein_attention.utils import get_reports_path
 
 sns.set()
+sns.set_context("paper")
 
 ss4_names = {
     0: 'Helix',
@@ -49,10 +44,9 @@ feature_to_title = {
 }
 
 
-def report(features, feature_scores, report_dir, filetype='pdf'):
+def report(feature_to_scores, attn_feature_to_scores, report_dir, filetype='pdf'):
 
     # Create detail plots
-    feature_to_scores = dict(zip(features, feature_scores))
     for i, feature in enumerate(feature_order):
         scores = feature_to_scores[feature]
         fig, ax = plt.subplots()
@@ -92,20 +86,49 @@ def report(features, feature_scores, report_dir, filetype='pdf'):
     plt.savefig(fname, format=filetype, bbox_inches='tight')
     plt.close()
 
+    # Create combined plot
+    figsize = (3, 5)
+    plt.figure(figsize=figsize)
+    fig, ax = plt.subplots(len(feature_order), figsize=figsize, sharex=True,
+                           gridspec_kw={'wspace': 0, 'hspace': .17})
+
+    for i, feature in enumerate(feature_order):
+
+        scores = feature_to_scores[feature]
+        ax[i].plot(list(range(12)), scores, label='Embedding probe', color='#DD8353')
+        if feature == 'Contact Map':
+            scores = attn_feature_to_scores[feature]
+            ax[i].plot(list(range(12)), scores, label='Attention probe', color='#4D71B0')
+            l = ax[i].legend(fontsize=6.3, handlelength=1, handletextpad=0.4, frameon=False)
+            for text in l.get_texts():
+                text.set_color('#3B3838')
+        ax[i].tick_params(labelsize=6)
+        ax[i].set_ylabel(feature.replace('Contact Map', 'Contact'), fontsize=8)
+        ax[i].yaxis.tick_right()
+        ax[i].grid(True, axis='x', color='#F3F2F3', lw=1.2)
+        ax[i].grid(True, axis='y', color='#F3F2F3', lw=1.2)
+
+
+    plt.xticks(range(12), range(1, 13))
+    plt.xlabel('Layer', fontsize=8)
+    fname = report_dir / f'multichart_layer_probing.{filetype}'
+    print('Saving', fname)
+    plt.savefig(fname, format=filetype, bbox_inches='tight')
+    plt.close()
+
 
 if __name__ == "__main__":
 
     data_path = get_data_path()
 
-    features = []
-    feature_scores = []
+    feature_to_scores = {}
+    attn_feature_to_scores = {}
 
     # Probing sec struct results
     ss_cds = [0, 1, 2]
     ss_names = ss4_names
     for ss_cd in ss_cds:
         feature = ss_names[ss_cd]
-        features.append(feature)
         scores = [0] * 12
         for num_layers in list(range(1, 13)):
             fname = data_path / 'probing' / f'secondary_{ss_cd}_{num_layers}/results.json'
@@ -118,10 +141,10 @@ if __name__ == "__main__":
             except FileNotFoundError:
                 print('Skipping', fname)
                 continue
-        feature_scores.append(scores)
+        attn_feature_to_scores[feature] = scores
 
     # Probing binding site results
-    features.append('Binding Site')
+    feature = 'Binding Site'
     scores = [0] * 12
     for num_layers in list(range(1, 13)):
         fname = data_path / 'probing' / f'binding_sites_{num_layers}/results.json'
@@ -134,24 +157,29 @@ if __name__ == "__main__":
         except FileNotFoundError:
             print('Skipping', fname)
             continue
-    feature_scores.append(scores)
+    feature_to_scores[feature] = scores
 
     # Probing contact map results
-    features.append('Contact Map')
-    scores = [0] * 12
-    for num_layers in list(range(1, 13)):
-        fname = data_path / 'probing' / f'contact_map_{num_layers}/results.json'
-        try:
-            with open(fname) as infile:
-                results = json.load(infile)
-                print('contact maps', num_layers, 'f1:', results['f1'], 'precision:', results['precision'], 'recall:',
-                      results['recall'], 'precision at k:', results['precision_at_k'])
-                scores[num_layers - 1] = results['precision_at_k']
-        except FileNotFoundError:
-            print('Skipping', fname)
-            continue
-    feature_scores.append(scores)
+    feature = 'Contact Map'
+    for use_attn in False, True:
+        scores = [0] * 12
+        for num_layers in list(range(1, 13)):
+            fname = data_path / 'probing' / f'contact_map{"_attn" if use_attn else ""}_{num_layers}/results.json'
+            try:
+                with open(fname) as infile:
+                    results = json.load(infile)
+                    print('contact maps', num_layers, 'f1:', results['f1'], 'precision:', results['precision'], 'recall:',
+                          results['recall'], 'precision at k:', results['precision_at_k'])
+                    scores[num_layers - 1] = results['precision_at_k']
+            except FileNotFoundError:
+                print('Skipping', fname)
+                continue
+        if use_attn:
+            attn_feature_to_scores[feature] = scores
+        else:
+            feature_to_scores[feature] = scores
+
 
     report_dir = get_reports_path() / 'probing'
     pathlib.Path(report_dir).mkdir(parents=True, exist_ok=True)
-    report(features, feature_scores, report_dir)
+    report(feature_to_scores, attn_feature_to_scores, report_dir)

@@ -11,7 +11,7 @@ from timeit import default_timer as timer
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from tape.datasets import ProteinnetDataset
+from protein_attention.datasets import ProteinnetDataset
 from tape import errors
 from tape import utils
 from tape import visualization
@@ -23,7 +23,9 @@ from tqdm import tqdm
 
 from protein_attention.datasets import SecondaryStructureOneVsAllDataset, BindingSiteDataset
 from protein_attention.probing.metrics import precision, recall, f1, precision_at_ks
-from protein_attention.probing.models import ProteinBertForLinearSequenceToSequenceProbing, ProteinBertForContactProbing
+from protein_attention.probing.models import ProteinBertForLinearSequenceToSequenceProbing, \
+    ProteinBertForContactProbing, ProteinBertForContactPredictionFromAttention, \
+    ProteinBertForLinearSequenceToSequenceProbingFromAttention
 from protein_attention.utils import get_data_path
 
 try:
@@ -400,6 +402,7 @@ def run_eval_epoch(eval_loader: DataLoader,
 def run_train(task: str,
               num_hidden_layers: int,
               one_vs_all_label: str = None,
+              attention_probe: bool = False,
               label_scheme: str = None,
               learning_rate: float = 1e-4,
               batch_size: int = 1024,
@@ -420,7 +423,8 @@ def run_train(task: str,
               num_workers: int = 0,
               debug: bool = False,
               log_level: typing.Union[str, int] = logging.INFO,
-              patience: int = -1) -> None:
+              patience: int = -1,
+              max_seq_len: typing.Optional[int] = None) -> None:
     # SETUP AND LOGGING CODE #
     input_args = locals()
     device, n_gpu, is_master = utils.setup_distributed(
@@ -429,7 +433,7 @@ def run_train(task: str,
     data_dir = get_data_path()
     output_dir = data_dir / 'probing'
     exp_dir = f'{(exp_name + "_") if exp_name else ""}{task}_{(one_vs_all_label + "_") if one_vs_all_label else ""}' \
-              f'{num_hidden_layers}'
+              f'{"attn_" if attention_probe else ""}{num_hidden_layers}'
     save_path = Path(output_dir) / exp_dir
 
     if is_master:
@@ -444,9 +448,14 @@ def run_train(task: str,
 
     if task == 'secondary':
         num_labels = 2
-        model = ProteinBertForLinearSequenceToSequenceProbing.from_pretrained('bert-base',
-                                                                              num_hidden_layers=num_hidden_layers,
-                                                                              num_labels=num_labels)
+        if attention_probe:
+            model = ProteinBertForLinearSequenceToSequenceProbingFromAttention.from_pretrained('bert-base',
+                                                                                  num_hidden_layers=num_hidden_layers,
+                                                                                  num_labels=num_labels)
+        else:
+            model = ProteinBertForLinearSequenceToSequenceProbing.from_pretrained('bert-base',
+                                                                                  num_hidden_layers=num_hidden_layers,
+                                                                                  num_labels=num_labels)
         if label_scheme == 'ss4':
             label = int(one_vs_all_label)
         else:
@@ -455,25 +464,35 @@ def run_train(task: str,
         valid_dataset = SecondaryStructureOneVsAllDataset(data_dir, 'valid', label_scheme, label)
     elif task == 'binding_sites':
         num_labels = 2
-        model = ProteinBertForLinearSequenceToSequenceProbing.from_pretrained('bert-base',
-                                                                              num_hidden_layers=num_hidden_layers,
-                                                                              num_labels=num_labels)
+        if attention_probe:
+            model = ProteinBertForLinearSequenceToSequenceProbingFromAttention.from_pretrained('bert-base',
+                                                                                  num_hidden_layers=num_hidden_layers,
+                                                                                  num_labels=num_labels)
+        else:
+            model = ProteinBertForLinearSequenceToSequenceProbing.from_pretrained('bert-base',
+                                                                                  num_hidden_layers=num_hidden_layers,
+                                                                                  num_labels=num_labels)
         train_dataset = BindingSiteDataset(data_dir, 'train')
         valid_dataset = BindingSiteDataset(data_dir, 'valid')
     elif task == 'contact_map':
         num_labels = 2
-        model = ProteinBertForContactProbing.from_pretrained('bert-base', num_hidden_layers=num_hidden_layers)
-        train_dataset = ProteinnetDataset(data_dir, 'train')
-        valid_dataset = ProteinnetDataset(data_dir, 'valid')
+        if attention_probe:
+            model = ProteinBertForContactPredictionFromAttention.from_pretrained('bert-base',
+                                                                                 num_hidden_layers=num_hidden_layers)
+        else:
+            model = ProteinBertForContactProbing.from_pretrained('bert-base', num_hidden_layers=num_hidden_layers)
+        train_dataset = ProteinnetDataset(data_dir, 'train', max_seq_len=max_seq_len)
+        valid_dataset = ProteinnetDataset(data_dir, 'valid', max_seq_len=max_seq_len)
     else:
         raise NotImplementedError
 
     model = model.to(device)
     optimizer = utils.setup_optimizer(model, learning_rate)
-    viz = visualization.get(log_dir, exp_dir, local_rank, debug=debug)
-    viz.log_config(input_args)
-    viz.log_config(model.config.to_dict())
-    viz.watch(model)
+    # viz = visualization.get(log_dir, exp_dir, local_rank, debug=debug)
+    # viz.log_config(input_args)
+    # viz.log_config(model.config.to_dict())
+    # viz.watch(model)
+    viz=None
 
     train_loader = utils.setup_loader(
         train_dataset, batch_size, local_rank, n_gpu,
@@ -555,6 +574,7 @@ def run_train(task: str,
 
                     if task == 'contact_map':
                         # Reshape 2d to 1d
+                        # Shape batch_size, seq_len, seq_len
                         prediction = [torch.tensor(prediction_matrix).view(-1, 2).tolist() for prediction_matrix in
                                       prediction]
                         target = [torch.tensor(target_matrix).view(-1).tolist() for target_matrix in target]
@@ -562,9 +582,6 @@ def run_train(task: str,
                     metrics_to_save = {name: metric(target, prediction)
                                        for name, metric in zip(metrics, metric_functions)}
                     if task == 'contact_map':
-                        print(seq_lens)
-                        print('first one')
-                        print(seq_lens[0])
                         ks = [int(round(seq_len / 5)) for seq_len in seq_lens]
                         metrics_to_save['precision_at_k'] = precision_at_ks(ks, target, prediction)
                     elif task == 'binding_sites':
@@ -606,6 +623,8 @@ def run_train(task: str,
     with open(save_path / 'results.json', 'w') as outfile:
         json.dump(metrics_to_save, outfile)
 
+    del model
+
 
 if __name__ == "__main__":
     import argparse
@@ -628,10 +647,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run Probing on the TAPE datasets',
                                      parents=[base_parser])
     parser.add_argument('task')
-    parser.add_argument('--num_hidden_layers', type=int, default=None)
+    parser.add_argument('--hidden_layer_index', type=int, default=None)
     parser.add_argument('--one_vs_all_label', default=None)
     parser.add_argument('--label_scheme', default=None)
+    parser.add_argument('--attention_probe', action='store_true')
     parser.add_argument('--learning_rate', default=1e-4, type=float,
+                        help='Learning rate')
+    parser.add_argument('--max_seq_len', type=int,
                         help='Learning rate')
     parser.add_argument('--batch_size', default=1024, type=int,
                         help='Batch size')
@@ -663,8 +685,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.num_hidden_layers:
-        num_hidden_layers_list = [args.num_hidden_layers]
+    if args.hidden_layer_index:
+        num_hidden_layers_list = [args.hidden_layer_index]
     else:
         num_hidden_layers_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     for num_hidden_layers in num_hidden_layers_list:
@@ -672,6 +694,7 @@ if __name__ == "__main__":
                   num_hidden_layers=num_hidden_layers,
                   label_scheme=args.label_scheme,
                   one_vs_all_label=args.one_vs_all_label,
+                  attention_probe=args.attention_probe,
                   learning_rate=args.learning_rate,
                   batch_size=args.batch_size,
                   num_train_epochs=args.num_train_epochs,
@@ -691,4 +714,5 @@ if __name__ == "__main__":
                   num_workers=args.num_workers,
                   debug=args.debug,
                   log_level=logging.INFO,
-                  patience=args.patience)
+                  patience=args.patience,
+                  max_seq_len=args.max_seq_len)

@@ -2,46 +2,46 @@
 
 This repository is the official implementation of [BERTology Meets Biology: Interpreting Attention in Protein Language Models](https://arxiv.org/abs/2006.15222). 
 
-## ProVis Attention Visualizer
+## Table of Contents
+
+- [ProVis 3D Attention Visualizer](#provis-3d-attention-visualizer)
+  * [Installation](#installation)
+  * [Execution](#execution)
+- [Experiments](#experiments)
+  * [Installation](#installation-2)
+  * [Datasets](#datasets)
+  * [Attention Analysis](#attention-analysis)
+    + [Tape BERT Model](#tape-bert-model)
+    + [ProtTrans Models](#prottrans-models)
+  * [Probing Analysis](#probing-analysis)
+    + [Training](#training)
+    + [Reports](#reports)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+- [Citation](#citation)
+
+## ProVis 3D Attention Visualizer
+
+This section provides instructions on generating visualizations of attention projected into protein structure.
 
 ![Image](images/vis3d_binding_sites.png?raw=true)  ![Image](images/vis3d_contact_map.png?raw=true)
 
 ### Installation
 **General requirements**:
-* Python >= 3.6
-* PyTorch (See installation instructions [here](https://pytorch.org/).)
+* Python >= 3.7
 
-**Specific libraries:**
 ```
 pip install biopython==1.77
 pip install tape-proteins==0.4
+pip install jupyterlab==3.0.14
+pip install nglview
+jupyter-nbextension enable nglview --py --sys-prefix
 ```
 
-**NGLViewer** (based on instructions found [here](https://github.com/arose/nglview#released-version])):
+If you run into problems installing nglview, please refer to their 
+[installation instructions](https://github.com/arose/nglview#released-version) for additional installation details
+ and options.
 
-- Available on `conda-forge` channel
-
-    ```bash
-    conda install nglview -c conda-forge
-    jupyter-nbextension enable nglview --py --sys-prefix
-    
-  # if you already installed nglview, you can `upgrade`
-    conda upgrade nglview --force
-    # might need: jupyter-nbextension enable nglview --py --sys-prefix
-    ```
-
-- Available on [PyPI](https://pypi.python.org/pypi/nglview/)
-
-```bash
-   pip install nglview
-   jupyter-nbextension enable nglview --py --sys-prefix
-```
-
-To use in Jupyter Lab you need to install appropriate extension:
-
-```bash
-jupyter labextension install  nglview-js-widgets
-```
 
 ### Execution
 
@@ -50,12 +50,21 @@ cd <project_root>/notebooks
 jupyter notebook provis.ipynb
 ```
 
+If you get an error running the notebook, you may need to execute the notebook as follows:
+
+```
+jupyter notebook --NotebookApp.iopub_data_rate_limit=10000000
+```
+See nglview [installation instructions](https://github.com/arose/nglview#released-version) for more details.
+
 You may edit the notebook to choose other proteins, attention heads, etc. The visualization tool is based on the
 excellent [nglview](https://github.com/arose/nglview) library.
 
 ---
 
 ## Experiments
+
+This section describes how to reproduce the experiments in the paper.
 
 ### Installation
 
@@ -86,63 +95,55 @@ Before performing steps, navigate to appropriate directory:
 cd <project_root>/protein_attention/attention_analysis
 ```
 
-#### Amino Acids
+#### Tape BERT Model
 
-Run analysis (may wish to run in background):
+The following executes the attention analysis (may run for several hours):
 ```
-sh scripts/compute_aa_features.sh
+sh scripts/compute_all_features_tape_bert.sh
 ```
-The above steps create a pickle extract file in <project_root>/data/cache
+The above script create a set of extract files in <project_root>/data/cache corresponding to various properties. Feel
+ free to edit the script files to remove properties that you do not wish to analyze. If you wish to run the
+ analysis without a GPU, you must specify the `--no_cuda` flag.
 
-Run report from extract file:
+The following generate reports based on the files created in previous step:
 ```
-python report_edge_features.py edge_features_aa
-python report_aa_correlations.py edge_features_aa
+sh scripts/report_all_features_tape_bert.sh
 ```
+If you removed steps from the analysis script above, you will need to update the reporting script accordingly.
 
-#### Secondary Structure
-Run analysis:
-```
-sh scripts/compute_sec_features.sh
-```
 
-Run reports:
-```
-python report_edge_features.py edge_features_sec
-```
-#### Contact Maps
+#### ProtTrans Models
 
-Run analysis:
-```
-sh scripts/compute_contact_features.sh
-```
+In order to generate reports for the ProtTrans models, follow the instructions as for the TapeBert
+ model above, but substitute the following commands:<br>
 
-Run report:
+**ProtBert:**<br/>
 ```
-python report_edge_features.py edge_features_contact
+sh scripts/compute_all_features_prot_bert.sh
+sh scripts/report_all_features_prot_bert.sh
+```
+ 
+**ProtBertBFD:**<br/>
+```
+sh scripts/compute_all_features_prot_bert_bfd.sh
+sh scripts/report_all_features_prot_bert_bfd.sh
 ```
 
-#### Binding Sites
-Run analysis:
+**ProtAlbert:**<br/>
 ```
-sh scripts/compute_site_features.sh
-```
-
-Run report:
-```
-python report_edge_features.py edge_features_sites
+sh scripts/compute_all_features_prot_albert.sh
+sh scripts/report_all_features_prot_albert.sh
 ```
 
-#### Combined features
-Create report of all features combined
+**ProtXLNet:**<br/>
 ```
-python report_edge_features_combined.py edge_features_aa edge_features_sec edge_features_contact edge_features_sites
+sh scripts/compute_all_features_prot_xlnet.sh
+sh scripts/report_all_features_prot_xlnet.sh
 ```
 
 ### Probing Analysis
 
 The following steps will recreate the reports currently found in <project_root>/reports/probing
-
 
 Navigate to directory:
 ```

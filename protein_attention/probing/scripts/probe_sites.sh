@@ -6,4 +6,5 @@ python probe.py \
   --num_train_epochs 50 \
   --save_freq improvement \
   --patience 3 \
-  --num_workers 0
+  --num_workers 0 \
+  --max_seq_len 512

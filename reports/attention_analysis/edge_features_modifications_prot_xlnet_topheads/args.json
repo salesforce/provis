@@ -1,0 +1,1 @@
+{"exp_name": "edge_features_modifications_prot_xlnet", "features": ["protein_modifications"], "dataset": "protein_modifications", "num_sequences": 5000, "model": "xlnet", "model_version": "prot_xlnet", "model_dir": null, "shuffle": true, "max_seq_len": 512, "seed": 123, "min_attn": 0.3, "no_cuda": false}
