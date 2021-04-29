@@ -4,7 +4,7 @@ This repository is the official implementation of [BERTology Meets Biology: Inte
 
 ## Table of Contents
 
-- [ProVis 3D Attention Visualizer](#provis-3d-attention-visualizer)
+- [ProVis Attention Visualizer](#provis-attention-visualizer)
   * [Installation](#installation)
   * [Execution](#execution)
 - [Experiments](#experiments)
@@ -20,9 +20,9 @@ This repository is the official implementation of [BERTology Meets Biology: Inte
 - [Acknowledgments](#acknowledgments)
 - [Citation](#citation)
 
-## ProVis 3D Attention Visualizer
+## ProVis Attention Visualizer
 
-This section provides instructions on generating visualizations of attention projected into protein structure.
+This section provides instructions for generating visualizations of attention projected onto 3D protein structure.
 
 ![Image](images/vis3d_binding_sites.png?raw=true)  ![Image](images/vis3d_contact_map.png?raw=true)
 
@@ -73,9 +73,6 @@ cd <project_root>
 python setup.py develop
 ```
 
-
-### Datasets
-
 To download additional required datasets from [TAPE](https://github.com/songlab-cal/tape):
 
 ```setup
@@ -88,7 +85,9 @@ tar -xvf proteinnet.tar.gz && rm proteinnet.tar.gz
 
 ### Attention Analysis
 
-The following steps will recreate the reports currently found in <project_root>/reports/attention_analysis
+The following steps will reproduce the attention analysis experiments and generate the reports currently found in
+ <project_root>/reports/attention_analysis. This includes all experiments besides the probing experiments
+  (see [Probing Analysis](#probing-analysis)).
 
 Before performing steps, navigate to appropriate directory:
 ```
@@ -101,8 +100,8 @@ The following executes the attention analysis (may run for several hours):
 ```
 sh scripts/compute_all_features_tape_bert.sh
 ```
-The above script create a set of extract files in <project_root>/data/cache corresponding to various properties. Feel
- free to edit the script files to remove properties that you do not wish to analyze. If you wish to run the
+The above script create a set of extract files in <project_root>/data/cache corresponding to various properties
+being analyzed. You may edit the script files to remove properties that you are not interested in. If you wish to run the
  analysis without a GPU, you must specify the `--no_cuda` flag.
 
 The following generate reports based on the files created in previous step:
@@ -143,7 +142,7 @@ sh scripts/report_all_features_prot_xlnet.sh
 
 ### Probing Analysis
 
-The following steps will recreate the reports currently found in <project_root>/reports/probing
+The following steps will recreate the figures from the probing analysis, currently found in <project_root>/reports/probing
 
 Navigate to directory:
 ```
