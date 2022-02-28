@@ -66,6 +66,8 @@ excellent [nglview](https://github.com/arose/nglview) library.
 
 This section describes how to reproduce the experiments in the paper.
 
+UPDATE: Some steps below cannot be executed, due to data
+
 ### Installation
 
 ```setup
@@ -77,9 +79,9 @@ To download additional required datasets from [TAPE](https://github.com/songlab-
 
 ```setup
 cd <project_root>/data
-wget http://s3.amazonaws.com/proteindata/data_pytorch/secondary_structure.tar.gz
+wget http://s3.amazonaws.com/songlabdata/proteindata/data_pytorch/secondary_structure.tar.gz
 tar -xvf secondary_structure.tar.gz && rm secondary_structure.tar.gz
-wget http://s3.amazonaws.com/proteindata/data_pytorch/proteinnet.tar.gz
+wget http://s3.amazonaws.com/songlabdata/proteindata/data_pytorch/proteinnet.tar.gz
 tar -xvf proteinnet.tar.gz && rm proteinnet.tar.gz
 ```
 
