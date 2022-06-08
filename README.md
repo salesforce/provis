@@ -66,8 +66,6 @@ excellent [nglview](https://github.com/arose/nglview) library.
 
 This section describes how to reproduce the experiments in the paper.
 
-UPDATE: Some steps below cannot be executed, due to data
-
 ### Installation
 
 ```setup
