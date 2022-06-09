@@ -1,4 +1,4 @@
-tape-proteins==0.4
+tape-proteins==0.5
 torch==1.4.0
 biopython==1.77
 scikit-learn==0.23.1
