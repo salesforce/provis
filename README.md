@@ -32,7 +32,7 @@ This section provides instructions for generating visualizations of attention pr
 
 ```
 pip install biopython==1.77
-pip install tape-proteins==0.4
+pip install tape-proteins==0.5
 pip install jupyterlab==3.0.14
 pip install nglview
 jupyter-nbextension enable nglview --py --sys-prefix
